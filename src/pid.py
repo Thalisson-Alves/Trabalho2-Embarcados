@@ -1,7 +1,9 @@
-import os
 import ctypes
+import os
 
-pid_so = os.path.join(os.path.dirname(__file__), 'pid_c', 'pid.so')
+from utils.settings import SO_DIR
+
+pid_so = os.path.join(SO_DIR, 'pid.so')
 module = ctypes.CDLL(pid_so)
 module.pid_configura_constantes.argtypes = [ctypes.c_double] * 3
 module.pid_atualiza_referencia.argtypes = [ctypes.c_float]

@@ -40,7 +40,7 @@ void uart_init()
     tcsetattr(uart_fp, TCSANOW, &options);
 }
 
-int uart_send(unsigned char command, void *buf, int buf_size, void *out_buf)
+int uart_send(unsigned char command, const void *const buf, unsigned buf_size, void *out_buf)
 {
     unsigned char buffer[9 + buf_size + 1];
     unsigned buffer_size = 0;
@@ -52,44 +52,32 @@ int uart_send(unsigned char command, void *buf, int buf_size, void *out_buf)
     buffer[buffer_size++] = 0;
     buffer[buffer_size++] = 1;
 
-    for (int i = 0; i < buf_size; i++)
+    for (unsigned i = 0; i < buf_size; i++)
         buffer[buffer_size++] = ((unsigned char*)buf)[i];
 
     int crc = calcula_CRC(buffer, buffer_size);
     memcpy(buffer + buffer_size, (void *) &crc, sizeof(short));
     buffer_size += sizeof(short);
 
-    for (int i = 0; i < buffer_size; i++)
-        printf("%d%c", buffer[i], " \n"[i + 1 == buffer_size]);
+    if (write(uart_fp, buffer, buffer_size) < 0)
+        return -1;
 
-    // if (write(uart0_filestream, &tx_buffer[0], (p_tx_buffer - &tx_buffer[0])) < 0)
-    //     return -1;
+    sleep(.05);
 
-    // sleep(.5);
+    unsigned char rx_buffer[256];
+    int rx_size = read(uart_fp, (void *)rx_buffer, 255);
+    if (rx_size <= 0)
+        return -1;
 
-    // unsigned char rx_buffer[256];
-    // int rx_size = read(uart_fp, (void *)rx_buffer, 255);
-    // if (rx_size <= 0)
-    //     return -1;
+    for (int i = 0; i < rx_size; i++)
+        printf("%d%c", rx_buffer[i], " \n"[i == rx_size - 1]);
 
-    // for (int i = 0; i < rx_size; i++)
-    //     printf("%d%c", rx_buffer[i], " \n"[i == rx_size - 1]);
+    // TODO: interprete response
+    if (calcula_CRC(rx_buffer, rx_size - 2) != *((short *)(rx_buffer + rx_size - 2)))
+        return -1;
 
-    // // TODO: interprete response
-    // if (calcula_CRC(rx_buffer, rx_size - 2) != *((short *)(rx_buffer + rx_size - 2)))
-    //     return -1;
-
-    // if (rx_size > 5)
-    //     memcpy(out_buf, rx_buffer + 3, rx_size - 5);
+    if (rx_size > 5)
+        memcpy(out_buf, rx_buffer + 3, rx_size - 5);
 
     return 0;
 }
-
-// int main(int argc, char **argv)
-// {
-//     // uart_init();
-//     int x = 42;
-//     uart_send(SEND_INT, (void *)&x, sizeof(int));
-
-//     return 0;
-// }

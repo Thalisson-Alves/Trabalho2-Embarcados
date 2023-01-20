@@ -1,11 +1,10 @@
 import time
-
-import pid
+from modbus import Modbus
 
 
 def main():
-    while True:
-        time.sleep(.05)
+    mod = Modbus()
+    print(mod.internal_temp)
 
 if __name__ == '__main__':
     main()
