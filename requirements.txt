@@ -1,1 +1,3 @@
 RPi.GPIO
+RPi.bme280
+smbus2

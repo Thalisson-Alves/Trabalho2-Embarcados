@@ -1,6 +1,7 @@
 import time
 import modbus
 import gpio
+import i2c
 
 
 def main():

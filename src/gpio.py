@@ -27,7 +27,7 @@ def change_intensity(control_signal: int) -> None:
         _fan_pwm.ChangeDutyCycle(0)
         _resistor_pwm.ChangeDutyCycle(control_signal)
     elif control_signal < 0:
-        _fan_pwm.ChangeDutyCycle(control_signal)
+        _fan_pwm.ChangeDutyCycle(max(-control_signal, 40))
         _resistor_pwm.ChangeDutyCycle(0)
     else:
         _fan_pwm.ChangeDutyCycle(0)

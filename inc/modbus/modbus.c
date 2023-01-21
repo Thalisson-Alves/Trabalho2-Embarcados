@@ -47,8 +47,8 @@ void uart_close()
 
 int uart_send(unsigned char command, const void *const buf, unsigned buf_size, void *out_buf)
 {
-    unsigned char buffer[9 + buf_size + 1];
     unsigned buffer_size = 0;
+    unsigned char buffer[9 + buf_size + 1];
     buffer[buffer_size++] = 0x01;
     buffer[buffer_size++] = (command < 0xd0 ? READ_CODE : SEND_CODE);
     buffer[buffer_size++] = command;
@@ -66,9 +66,9 @@ int uart_send(unsigned char command, const void *const buf, unsigned buf_size, v
 
     printf("Enviando: ");
     for (unsigned i = 0; i < buffer_size; i++)
-        printf("%d%c", buffer[i], " \n"[i == buffer_size - 1]);
+        printf("%02X%c", buffer[i], " \n"[i == buffer_size - 1]);
 
-    if (write(uart_fp, buffer, buffer_size) <= 0)
+    if (write(uart_fp, (void *) buffer, buffer_size) != buffer_size)
     {
         perror("Error on write");
         return -1;
@@ -88,7 +88,6 @@ int uart_send(unsigned char command, const void *const buf, unsigned buf_size, v
     for (int i = 0; i < rx_size; i++)
         printf("%d%c", rx_buffer[i], " \n"[i == rx_size - 1]);
 
-    // TODO: interprete response
     if (calcula_CRC(rx_buffer, rx_size - 2) != *((short *)(rx_buffer + rx_size - 2)))
     {
         perror("Different CRC");
