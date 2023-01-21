@@ -1,4 +1,5 @@
 from ._c_modbus import _RequestCommand, send
+from .user_command import UserCommand
 
 
 def internal_temp() -> float:
@@ -9,11 +10,11 @@ def reference_temp() -> float:
     return send(_RequestCommand.REFERENCE_TEMP)  # type: ignore
 
 
-def read_command() -> int:
-    return send(_RequestCommand.REQUEST_COMMAND)  # type: ignore
+def read_command() -> UserCommand:
+    return UserCommand(send(_RequestCommand.REQUEST_COMMAND))
 
 
-def send_control_sign(value: int) -> None:
+def send_control_signal(value: int) -> None:
     send(_RequestCommand.SEND_INT, value)
 
 
@@ -37,6 +38,6 @@ def send_room_temp(value: float) -> float:
     return send(_RequestCommand.SEND_AMB_TEMPO, value)  # type: ignore
 
 
-__all__ = ('internal_temp', 'reference_temp', 'read_command', 'send_control_sign',
+__all__ = ('internal_temp', 'reference_temp', 'read_command', 'send_control_signal',
            'send_reference_temp', 'send_system_status', 'send_control_status', 
            'send_working_status', 'send_room_temp')
