@@ -1,10 +1,23 @@
 import time
-from modbus import Modbus
+import modbus
 
 
 def main():
-    mod = Modbus()
-    print(mod.internal_temp)
+    startup()
+
+    try:
+        print(modbus.internal_temp())
+    finally:
+        shutdown()
+
+
+def startup():
+    modbus.init()
+
+
+def shutdown():
+    modbus.close()
+
 
 if __name__ == '__main__':
     main()

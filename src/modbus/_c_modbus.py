@@ -35,11 +35,15 @@ class _RequestCommand(Enum):
         return self._value_[1]
 
 
-def _init() -> None:
+def init() -> None:
     return module.uart_init()
 
 
-def _send(command: _RequestCommand, value: Union[int, float, bool, None] = None) -> Union[int, float, None]:
+def close() -> None:
+    return module.uart_close()
+
+
+def send(command: _RequestCommand, value: Union[int, float, bool, None] = None) -> Union[int, float, None]:
     size = 0
     if value is not None:
         c_type = c2py[type(value)]

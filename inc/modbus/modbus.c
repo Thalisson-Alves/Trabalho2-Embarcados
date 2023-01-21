@@ -40,6 +40,11 @@ void uart_init()
     tcsetattr(uart_fp, TCSANOW, &options);
 }
 
+void uart_close()
+{
+    close(uart_fp);
+}
+
 int uart_send(unsigned char command, const void *const buf, unsigned buf_size, void *out_buf)
 {
     unsigned char buffer[9 + buf_size + 1];
@@ -61,7 +66,7 @@ int uart_send(unsigned char command, const void *const buf, unsigned buf_size, v
 
     printf("Enviando: ");
     for (unsigned i = 0; i < buffer_size; i++)
-        printf("%d%c", buffer[i], " \n"[i == buffer_size - 1])
+        printf("%d%c", buffer[i], " \n"[i == buffer_size - 1]);
 
     if (write(uart_fp, buffer, buffer_size) <= 0)
     {
@@ -73,14 +78,14 @@ int uart_send(unsigned char command, const void *const buf, unsigned buf_size, v
 
     unsigned char rx_buffer[256];
     int rx_size = read(uart_fp, (void *)rx_buffer, 255);
-    if (rx_size < 0)
+    if (rx_size <= 0)
     {
         perror("Error on read");
         return -1;
     }
 
     printf("Recebido: ");
-    for (unsigned i = 0; i < rx_size; i++)
+    for (int i = 0; i < rx_size; i++)
         printf("%d%c", rx_buffer[i], " \n"[i == rx_size - 1]);
 
     // TODO: interprete response

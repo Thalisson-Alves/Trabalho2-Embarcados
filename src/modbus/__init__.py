@@ -1,1 +1,2 @@
-from .modbus import Modbus
+from ._c_modbus import close, init
+from .modbus import *
