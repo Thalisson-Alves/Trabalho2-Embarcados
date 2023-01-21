@@ -26,7 +26,7 @@ void uart_init()
     uart_fp = open("/dev/serial0", O_RDWR | O_NOCTTY | O_NDELAY);
     if (uart_fp == -1)
     {
-        printf("Erro - Porta Serial nao pode ser aberta. Confirme se não está sendo usada por outra aplicação.\n");
+        perror("uart_init()");
         exit(-1);
     }
 
@@ -59,22 +59,31 @@ int uart_send(unsigned char command, const void *const buf, unsigned buf_size, v
     memcpy(buffer + buffer_size, (void *) &crc, sizeof(short));
     buffer_size += sizeof(short);
 
-    if (write(uart_fp, buffer, buffer_size) < 0)
+    if (write(uart_fp, buffer, buffer_size) <= 0)
+    {
+        perror("Error on write");
         return -1;
+    }
 
     sleep(.05);
 
     unsigned char rx_buffer[256];
     int rx_size = read(uart_fp, (void *)rx_buffer, 255);
-    if (rx_size <= 0)
+    if (rx_size < 0)
+    {
+        perror("Error on read");
         return -1;
+    }
 
     for (int i = 0; i < rx_size; i++)
         printf("%d%c", rx_buffer[i], " \n"[i == rx_size - 1]);
 
     // TODO: interprete response
     if (calcula_CRC(rx_buffer, rx_size - 2) != *((short *)(rx_buffer + rx_size - 2)))
+    {
+        perror("Different CRC");
         return -1;
+    }
 
     if (rx_size > 5)
         memcpy(out_buf, rx_buffer + 3, rx_size - 5);
