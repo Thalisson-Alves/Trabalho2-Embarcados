@@ -59,6 +59,10 @@ int uart_send(unsigned char command, const void *const buf, unsigned buf_size, v
     memcpy(buffer + buffer_size, (void *) &crc, sizeof(short));
     buffer_size += sizeof(short);
 
+    printf("Enviando: ");
+    for (unsigned i = 0; i < buffer_size; i++)
+        printf("%d%c", buffer[i], " \n"[i == buffer_size - 1])
+
     if (write(uart_fp, buffer, buffer_size) <= 0)
     {
         perror("Error on write");
@@ -75,7 +79,8 @@ int uart_send(unsigned char command, const void *const buf, unsigned buf_size, v
         return -1;
     }
 
-    for (int i = 0; i < rx_size; i++)
+    printf("Recebido: ");
+    for (unsigned i = 0; i < rx_size; i++)
         printf("%d%c", rx_buffer[i], " \n"[i == rx_size - 1]);
 
     // TODO: interprete response
