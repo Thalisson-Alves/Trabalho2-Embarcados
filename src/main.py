@@ -3,14 +3,17 @@ import modbus
 import gpio
 import i2c
 import pid
-from oven_status import OvenStatus
+from oven_status import OvenState
+from curses import wrapper
+from screen import Screen
 
 
 def main():
     startup()
 
     try:
-        _main()
+        wrapper(Screen().run)
+        # _main()
     finally:
         shutdown()
 
@@ -25,26 +28,26 @@ def _main():
         if command is None: continue
 
         if command == command.OVEN_ON:
-            OvenStatus.on = True
-            modbus.send_system_status(OvenStatus.on)
+            OvenState.on = True
+            modbus.send_system_status(OvenState.on)
         elif command == command.OVEN_OFF:
-            OvenStatus.on = False
-            OvenStatus.heating = False
-            modbus.send_system_status(OvenStatus.on)
-            modbus.send_working_status(OvenStatus.heating)
+            OvenState.on = False
+            OvenState.heating = False
+            modbus.send_system_status(OvenState.on)
+            modbus.send_working_status(OvenState.heating)
             gpio.change_intensity(0)
-        elif command == command.START_HEATING and OvenStatus.on:
-            OvenStatus.heating = True
-            modbus.send_working_status(OvenStatus.heating)
+        elif command == command.START_HEATING and OvenState.on:
+            OvenState.heating = True
+            modbus.send_working_status(OvenState.heating)
 
-            OvenStatus.reference_temp = modbus.reference_temp()
-            pid.update_reference(OvenStatus.reference_temp)
+            OvenState.reference_temp = modbus.reference_temp()
+            pid.update_reference(OvenState.reference_temp)
 
-            OvenStatus.internal_temp = modbus.internal_temp()
-            pid.control(OvenStatus.internal_temp)
+            OvenState.internal_temp = modbus.internal_temp()
+            pid.control(OvenState.internal_temp)
         elif command == command.CANCEL:
-            OvenStatus.heating = False
-            modbus.send_working_status(OvenStatus.heating)
+            OvenState.heating = False
+            modbus.send_working_status(OvenState.heating)
             gpio.change_intensity(0)
         elif command == command.TOGGLE_TEMP_MODE:
             ...
@@ -58,7 +61,7 @@ def startup():
     gpio.setup()
     gpio.change_intensity(0)
 
-    pid.config_constants(OvenStatus.p, OvenStatus.i, OvenStatus.d)
+    pid.config_constants(OvenState.p, OvenState.i, OvenState.d)
     # TODO: Stop everything - system_status, working_status, ...
 
 

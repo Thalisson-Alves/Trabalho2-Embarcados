@@ -2,14 +2,15 @@ from enum import Enum
 
 
 class HeatingStatus(Enum):
-    MANUAL = 0
+    DEBUG = 0
     CURVE = 1
-    UART = 2
+    DASHBOARD = 2
 
 
-class OvenStatus:
+class OvenState:
     on: bool = False
     heating: bool = False
+    heating_status: HeatingStatus = HeatingStatus.DASHBOARD
 
     p: float = 30.0
     i: float = 0.2
@@ -17,5 +18,3 @@ class OvenStatus:
 
     reference_temp: float = 0.0
     internal_temp: float = 0.0
-
-    heating_status: HeatingStatus = HeatingStatus.UART
