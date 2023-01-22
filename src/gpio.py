@@ -11,7 +11,7 @@ def setup(frequency: int = 1000) -> None:
     global _fan_pwm, _resistor_pwm
 
     gpio.setwarnings(False)
-    gpio.setmode(gpio.BOARD)
+    gpio.setmode(gpio.BCM)
     gpio.setup(FAN_PIN, gpio.OUT)
     gpio.setup(RESISTOR_PIN, gpio.OUT)
 

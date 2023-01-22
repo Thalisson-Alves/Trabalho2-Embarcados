@@ -46,7 +46,7 @@ def _main():
             pid.update_reference(OvenState.reference_temp)
 
             OvenState.internal_temp = modbus.internal_temp()
-            pid.control(OvenState.internal_temp)
+            print(pid.control(OvenState.internal_temp))
         elif command == command.CANCEL:
             OvenState.heating = False
             modbus.send_working_status(OvenState.heating)

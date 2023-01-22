@@ -18,12 +18,11 @@ void pid_configura_constantes(double Kp_, double Ki_, double Kd_){
     Kd = Kd_;
 }
 
-void pid_atualiza_referencia(float referencia_){
-    referencia = (double) referencia_;
+void pid_atualiza_referencia(double referencia_){
+    referencia = referencia_;
 }
 
 double pid_controle(double saida_medida){
-
     double erro = referencia - saida_medida;
 
     erro_total += erro; // Acumula o erro (Termo Integral)
