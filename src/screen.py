@@ -34,18 +34,22 @@ class Box:
             x = centered_x(s, self.w)
         self.win.addstr(self.y + y, self.x + x, s)
 
+    @property
+    def center(self):
+        return self.y + self.h // 2, self.x + self.w // 2
+
 
 class _ScreenState(Enum):
     PID = 0
     CONTROL_MODE = 1
     TEMPERATURE = 2
     MENU = 3
+    READING_NUMBER = 4
 
 
 class Screen:
     def __init__(self) -> None:
-        self.option_selected = 0
-        self.state = _ScreenState.MENU
+        self.update_state(_ScreenState.MENU)
         os.environ.setdefault('ESCDELAY', '10')
 
     def run(self, stdscr: 'curses._CursesWindow'):
@@ -85,7 +89,8 @@ class Screen:
             'Alterar a Temperatura de Referência',
             'Sair',
         ]
-        self.menu_box = Box(self.stdscr, (len(self.options) + 1, w - 2), (8, 1), 'Menu')
+        self.menu_box = Box(self.stdscr, (len(self.options) + 1, w // 2 - 2), (8, 1), 'Menu')
+        self.number_box = Box(self.stdscr, (len(self.options) + 1, w // 2 - 2), (8, 1 + w // 2), 'Digite um número')
 
         self.pid_box = Box(self.stdscr, (6, w // 2 - 2), (14, 1), 'Constantes PID')
         self.temperature_box = Box(self.stdscr, (6, w // 2 - 2), (14, w // 2 + 1), 'Temperaturas')
@@ -95,6 +100,7 @@ class Screen:
             self.working_state_box,
             self.control_mode_box,
             self.menu_box,
+            self.number_box,
             self.pid_box,
             self.temperature_box,
         ]
@@ -104,10 +110,18 @@ class Screen:
         if user_input == curses.KEY_RESIZE:
             self.initialize_boxes()
         elif user_input == 27:  # ESC
-            self.option_selected = 0
-            self.state = _ScreenState.MENU
+            self.update_state(_ScreenState.MENU)
 
-        self.navigate(user_input)
+        elif self.state == _ScreenState.MENU:
+            self.navigate(user_input)
+        elif self.state == _ScreenState.PID:
+            self.navigate(user_input)
+        elif self.state == _ScreenState.CONTROL_MODE:
+            self.navigate(user_input)
+        elif self.state == _ScreenState.TEMPERATURE:
+            self.update_state(_ScreenState.READING_NUMBER)
+        elif self.state == _ScreenState.READING_NUMBER:
+            self.stdscr.move(self.number_box.y, self.number_box.x)
 
     def navigate(self, user_input):
         if user_input in (curses.KEY_DOWN, ord('j'), curses.KEY_RIGHT, ord('l'), ord('\t')):
@@ -124,8 +138,7 @@ class Screen:
             return 3
         if self.state == _ScreenState.PID:
             return 3
-        if self.state == _ScreenState.TEMPERATURE:
-            return 1
+        return 1
 
     def apply_action(self):
         if self.state == _ScreenState.MENU:
@@ -137,14 +150,20 @@ class Screen:
         if self.option_selected == 3:
             exit(0)
 
-        self.state = _ScreenState(self.option_selected)
-        self.option_selected = 0
+        self.update_state(_ScreenState(self.option_selected))
 
     def apply_control_mode_action(self):
+        OvenState.heating_status = HeatingStatus(self.option_selected)
+        self.update_state(_ScreenState.MENU)
         # TODO: update OvenState. Update UART
         ...
 
+    def update_state(self, new_state: _ScreenState):
+        self.state = new_state
+        self.option_selected = 0
+
     def render(self):
+        curses.curs_set(0)
         self.stdscr.erase()
 
         for func_name in filter(lambda x: x.startswith('render_'), dir(self)):
@@ -153,6 +172,7 @@ class Screen:
         for box in self.boxes:
             box.render()
 
+        self.stdscr.move(*self.number_box.center)
         self.stdscr.refresh()
 
     def render_title(self):
@@ -184,6 +204,13 @@ class Screen:
 
             if i - 1 == self.option_selected:
                 self.stdscr.attroff(curses.color_pair(3))
+
+    def render_number_input(self):
+        if self.state != _ScreenState.READING_NUMBER:
+            return
+
+        self.stdscr.move(self.number_box.y, self.number_box.x)
+        curses.curs_set(2)
 
     def render_temperature(self):
         temperatures = (('Temperatura de Referência', OvenState.reference_temp),
