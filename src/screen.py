@@ -49,7 +49,10 @@ class _ScreenState(Enum):
 
 class Screen:
     def __init__(self) -> None:
-        self.update_state(_ScreenState.MENU)
+        self.prev_state = (None, 0)
+        self.state = _ScreenState.MENU
+        self.option_selected = 0
+        self.number_input = []
         os.environ.setdefault('ESCDELAY', '10')
 
     def run(self, stdscr: 'curses._CursesWindow'):
@@ -121,7 +124,14 @@ class Screen:
         elif self.state == _ScreenState.TEMPERATURE:
             self.update_state(_ScreenState.READING_NUMBER)
         elif self.state == _ScreenState.READING_NUMBER:
-            self.stdscr.move(self.number_box.y, self.number_box.x)
+            is_digit = ord('0') <= user_input <= ord('9')
+            is_first_dot = '.' not in self.number_input and user_input == ord('.')
+            if is_digit or is_first_dot:
+                self.number_input.append(chr(user_input))
+            elif user_input == curses.KEY_BACKSPACE:
+                self.number_input.pop()
+            elif user_input == 10:
+                self.apply_number_action()
 
     def navigate(self, user_input):
         if user_input in (curses.KEY_DOWN, ord('j'), curses.KEY_RIGHT, ord('l'), ord('\t')):
@@ -145,12 +155,28 @@ class Screen:
             self.apply_menu_action()
         elif self.state == _ScreenState.CONTROL_MODE:
             self.apply_control_mode_action()
+        elif self.state == _ScreenState.PID:
+            self.update_state(_ScreenState.READING_NUMBER)
 
     def apply_menu_action(self):
         if self.option_selected == 3:
             exit(0)
 
+        if OvenState.heating_status != HeatingStatus.DEBUG and self.option_selected == 2:
+            return
+
         self.update_state(_ScreenState(self.option_selected))
+
+    def apply_number_action(self):
+        prev_state, prev_action = self.prev_state
+        number = float(''.join(self.number_input))
+        self.number_input = []
+        if prev_state == _ScreenState.TEMPERATURE:
+            OvenState.reference_temp = number
+            self.update_state(_ScreenState.MENU)
+        elif prev_state == _ScreenState.PID:
+            setattr(OvenState, 'pid'[prev_action], number)
+            self.update_state(_ScreenState.PID)
 
     def apply_control_mode_action(self):
         OvenState.heating_status = HeatingStatus(self.option_selected)
@@ -159,8 +185,8 @@ class Screen:
         ...
 
     def update_state(self, new_state: _ScreenState):
-        self.state = new_state
-        self.option_selected = 0
+        self.prev_state = self.state, self.option_selected
+        self.state, self.option_selected = new_state, 0
 
     def render(self):
         curses.curs_set(0)
@@ -172,7 +198,9 @@ class Screen:
         for box in self.boxes:
             box.render()
 
-        self.stdscr.move(*self.number_box.center)
+        y, x = self.number_box.center
+        d, m = divmod(len(self.number_input), 2)
+        self.stdscr.move(y, x + d - (not m) + 1)
         self.stdscr.refresh()
 
     def render_title(self):
@@ -209,7 +237,7 @@ class Screen:
         if self.state != _ScreenState.READING_NUMBER:
             return
 
-        self.stdscr.move(self.number_box.y, self.number_box.x)
+        self.number_box.write(2, 2, ''.join(self.number_input), center=True)
         curses.curs_set(2)
 
     def render_temperature(self):
@@ -222,8 +250,15 @@ class Screen:
 
     def render_pid(self):
         for i, name in enumerate('PID', 2):
+            if self.state == _ScreenState.PID and i - 2 == self.option_selected:
+                self.pid_box.write(i, 2, '>')
+                self.stdscr.attron(curses.color_pair(3))
+
             v = format_value(getattr(OvenState, name.lower(), None))
             self.pid_box.write(i, 4, f'Constante {name}'.ljust(self.temperature_box.w - len(v) - 5, '_') + v)
+
+            if self.state == _ScreenState.PID and i - 2 == self.option_selected:
+                self.stdscr.attroff(curses.color_pair(3))
 
     def render_menu(self):
         for i, option in enumerate(self.options, 1):

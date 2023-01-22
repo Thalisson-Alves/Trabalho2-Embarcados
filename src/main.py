@@ -14,6 +14,8 @@ def main():
     try:
         wrapper(Screen().run)
         # _main()
+    except KeyboardInterrupt:
+        ...
     finally:
         shutdown()
 
