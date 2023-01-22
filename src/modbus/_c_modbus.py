@@ -53,11 +53,11 @@ def send(command: _RequestCommand, value: Union[int, float, bool, None] = None) 
 
     out = command.return_type()
     err = module.uart_send(command.code, value, size, out if out is None else ctypes.byref(out))
-    
+
     if err == 1:
-        raise exceptions.ModbusWriteError('Failed to write command to uart')
+        raise exceptions.ModbusWriteError('Failed to write value to uart')
     elif err == 2:
-        raise exceptions.ModbusReadError('Failed to read command from uart')
+        raise exceptions.ModbusReadError('Failed to read value from uart')
     elif err == 3:
         raise exceptions.ModbusCRCError('CRC Missmatch')
 
