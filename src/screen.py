@@ -243,7 +243,7 @@ class Screen:
     def render_temperature(self):
         temperatures = (('Temperatura de Referência', OvenState.reference_temp),
                         ('Temperatura Interna', OvenState.internal_temp),
-                        ('Temperatura Ambiente', OvenState.internal_temp))
+                        ('Temperatura Ambiente', OvenState.room_temp))
         for i, (name, value) in enumerate(temperatures, 2):
             v = format_value(value)
             self.temperature_box.write(i, 4, name.ljust(self.temperature_box.w - len(v) - 5, '_') + v)

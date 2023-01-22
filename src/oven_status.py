@@ -18,3 +18,7 @@ class OvenState:
 
     reference_temp: float = 0.0
     internal_temp: float = 0.0
+    room_temp: float = 0.0
+
+    intensity: int = 0
+

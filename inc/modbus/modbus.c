@@ -64,13 +64,13 @@ int uart_send(unsigned char command, const void *const buf, unsigned buf_size, v
     memcpy(buffer + buffer_size, (void *) &crc, sizeof(short));
     buffer_size += sizeof(short);
 
-    printf("Enviando: ");
-    for (unsigned i = 0; i < buffer_size; i++)
-        printf("%02X%c", buffer[i], " \n"[i == buffer_size - 1]);
+    // printf("Enviando: ");
+    // for (unsigned i = 0; i < buffer_size; i++)
+    //     printf("%02X%c", buffer[i], " \n"[i == buffer_size - 1]);
 
     if (write(uart_fp, (void *) buffer, buffer_size) != buffer_size)
     {
-        perror("Error on write");
+        // perror("Error on write");
         return 1;
     }
 
@@ -89,17 +89,17 @@ int uart_send(unsigned char command, const void *const buf, unsigned buf_size, v
 
     if (rx_size <= 0)
     {
-        perror("Error on read");
+        // perror("Error on read");
         return 2;
     }
 
-    printf("Recebido: %d bytes\n > ", rx_size);
-    for (int i = 0; i < rx_size; i++)
-        printf("%d%c", rx_buffer[i], " \n"[i == rx_size - 1]);
+    // printf("Recebido: %d bytes\n > ", rx_size);
+    // for (int i = 0; i < rx_size; i++)
+    //     printf("%d%c", rx_buffer[i], " \n"[i == rx_size - 1]);
 
     if (calcula_CRC(rx_buffer, rx_size - 2) != *((short *)(rx_buffer + rx_size - 2)))
     {
-        perror("Different CRC");
+        // perror("Different CRC");
         return 3;
     }
 
