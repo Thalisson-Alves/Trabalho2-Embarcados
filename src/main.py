@@ -15,10 +15,11 @@ def main():
 
 def _main():
     while True:
-        time.sleep(0.5)
+        time.sleep(3)
 
         command = modbus.read_command()
-        print(f'Received {command.name = }')
+
+        print(f'Received {command = }')
         if command == command.OVEN_ON:
             modbus.send_system_status(True)
         elif command == command.OVEN_OFF:

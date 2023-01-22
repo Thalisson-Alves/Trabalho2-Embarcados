@@ -1,39 +1,42 @@
 from ._c_modbus import _RequestCommand, send
 from .user_command import UserCommand
 
+from utils.exceptions import try_log
 
+
+@try_log
 def internal_temp() -> float:
     return send(_RequestCommand.INTERNAL_TEMP)  # type: ignore
 
-
+@try_log
 def reference_temp() -> float:
     return send(_RequestCommand.REFERENCE_TEMP)  # type: ignore
 
-
+@try_log
 def read_command() -> UserCommand:
     return UserCommand(send(_RequestCommand.REQUEST_COMMAND))
 
-
+@try_log
 def send_control_signal(value: int) -> None:
     send(_RequestCommand.SEND_INT, value)
 
-
+@try_log
 def send_reference_temp(value: float) -> None:
     send(_RequestCommand.SEND_FLOAT, value)
 
-
+@try_log
 def send_system_status(status: bool) -> int:
     return send(_RequestCommand.SEND_SYS_STATE, status)  # type: ignore
 
-
+@try_log
 def send_control_status(status: bool) -> int:
     return send(_RequestCommand.SEND_CONTROL_MODE, status)  # type: ignore
 
-
+@try_log
 def send_working_status(status: bool) -> int:
     return send(_RequestCommand.SEND_FUNC_STATE, status)  # type: ignore
 
-
+@try_log
 def send_room_temp(value: float) -> float:
     return send(_RequestCommand.SEND_AMB_TEMPO, value)  # type: ignore
 

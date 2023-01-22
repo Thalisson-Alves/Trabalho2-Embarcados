@@ -71,27 +71,36 @@ int uart_send(unsigned char command, const void *const buf, unsigned buf_size, v
     if (write(uart_fp, (void *) buffer, buffer_size) != buffer_size)
     {
         perror("Error on write");
-        return -1;
+        return 1;
     }
 
     sleep(1);
 
     unsigned char rx_buffer[256];
     int rx_size = read(uart_fp, (void *)rx_buffer, 255);
+
+    // unsigned char rx_buffer[256];
+    // int rx_size = 0;
+    // for (int size_read = 0; rx_size < 9; rx_size += size_read)
+    // {
+    //     size_read = read(uart_fp, rx_buffer + rx_size, 255);
+    //     sleep(0.01);
+    // }
+
     if (rx_size <= 0)
     {
         perror("Error on read");
-        return -1;
+        return 2;
     }
 
-    printf("Recebido: ");
+    printf("Recebido: %d bytes\n > ", rx_size);
     for (int i = 0; i < rx_size; i++)
         printf("%d%c", rx_buffer[i], " \n"[i == rx_size - 1]);
 
     if (calcula_CRC(rx_buffer, rx_size - 2) != *((short *)(rx_buffer + rx_size - 2)))
     {
         perror("Different CRC");
-        return -1;
+        return 3;
     }
 
     if (rx_size > 5)

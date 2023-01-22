@@ -5,6 +5,7 @@ from types import DynamicClassAttribute
 from typing import Union
 
 from utils.settings import SO_DIR
+from utils import exceptions
 
 modbus_so = os.path.join(SO_DIR, 'modbus.so')
 module = ctypes.CDLL(modbus_so)
@@ -51,8 +52,13 @@ def send(command: _RequestCommand, value: Union[int, float, bool, None] = None) 
         value = ctypes.byref(c_type(value))  # type: ignore
 
     out = command.return_type()
-    if module.uart_send(command.code, value, size,
-                        out if out is None else ctypes.byref(out)):
-        raise RuntimeError('Error on uart_send')
+    err = module.uart_send(command.code, value, size, out if out is None else ctypes.byref(out))
+    
+    if err == 1:
+        raise exceptions.ModbusWriteError('Failed to write command to uart')
+    elif err == 2:
+        raise exceptions.ModbusReadError('Failed to read command from uart')
+    elif err == 3:
+        raise exceptions.ModbusCRCError('CRC Missmatch')
 
     return out if out is None else out.value
