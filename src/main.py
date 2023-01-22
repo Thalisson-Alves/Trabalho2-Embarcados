@@ -31,8 +31,6 @@ def _main():
             ...
         elif command == command.TOGGLE_TEMP_MODE:
             ...
-        else:
-            print('Unknown command')
 
 
 def startup():

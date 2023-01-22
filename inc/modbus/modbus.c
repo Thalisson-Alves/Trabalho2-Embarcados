@@ -26,13 +26,13 @@ void uart_init()
     uart_fp = open("/dev/serial0", O_RDWR | O_NOCTTY | O_NDELAY);
     if (uart_fp == -1)
     {
-        perror("uart_init()");
+        perror("open()");
         exit(-1);
     }
 
     struct termios options;
     tcgetattr(uart_fp, &options);
-    options.c_cflag = B115200 | CS8 | CLOCAL | CREAD;
+    options.c_cflag = B9600 | CS8 | CLOCAL | CREAD;
     options.c_iflag = IGNPAR;
     options.c_oflag = 0;
     options.c_lflag = 0;
@@ -74,7 +74,7 @@ int uart_send(unsigned char command, const void *const buf, unsigned buf_size, v
         return -1;
     }
 
-    sleep(.05);
+    sleep(1);
 
     unsigned char rx_buffer[256];
     int rx_size = read(uart_fp, (void *)rx_buffer, 255);
