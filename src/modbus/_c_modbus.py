@@ -69,4 +69,4 @@ def send(command: _RequestCommand, value: Union[int, float, bool, None] = None) 
     elif err == 3:
         raise exceptions.ModbusCRCError('CRC Missmatch')
 
-    return out if out is None else out.value
+    return out.value if out else None
