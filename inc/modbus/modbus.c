@@ -81,19 +81,20 @@ int uart_send(unsigned char command, int res_size, const void *const buf, unsign
 
     unsigned char rx_buffer[256];
     int rx_size = 0;
-    for (int size_read = 0; rx_size < res_size; rx_size += size_read)
+    for (int size_read = 0, mx = 100; mx-- && rx_size < res_size; rx_size += size_read)
     {
         size_read = read(uart_fp, rx_buffer + rx_size, res_size - rx_size);
         sleep(0.05);
     }
-    read(uart_fp, rx_buffer + rx_size, 120);
-    // printf("Leu %d\n", rx_size);
 
-    if (rx_size < 2 || rx_size > 7)
-    {
-        // perror("Error on read");
-        return 2;
-    }
+    // Clear the buffer
+    read(uart_fp, rx_buffer + rx_size, 120);
+
+    // if (rx_size < 2)
+    // {
+    //     // perror("Error on read");
+    //     return 2;
+    // }
 
     // printf("Recebido: %d bytes\n > ", rx_size);
     // for (int i = 0; i < rx_size; i++)

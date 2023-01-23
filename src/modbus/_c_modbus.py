@@ -18,15 +18,15 @@ c2py = {int: ctypes.c_int, float: ctypes.c_float, bool: ctypes.c_byte}
 
 
 class _RequestCommand(Enum):
-    INTERNAL_TEMP = (0xc1, ctypes.c_float, 7)
-    REFERENCE_TEMP = (0xc2, ctypes.c_float, 7)
-    REQUEST_COMMAND = (0xc3, ctypes.c_int, 7)
-    SEND_INT = (0xd1, type(None), 3)
-    SEND_FLOAT = (0xd2, type(None), 3)
-    SEND_SYS_STATE = (0xd3, ctypes.c_int, 7)
-    SEND_CONTROL_MODE = (0xd4, ctypes.c_int, 7)
-    SEND_FUNC_STATE = (0xd5, ctypes.c_int, 7)
-    SEND_AMB_TEMPO = (0xd6, ctypes.c_float, 7)
+    INTERNAL_TEMP = (0xc1, ctypes.c_float, 9)
+    REFERENCE_TEMP = (0xc2, ctypes.c_float, 9)
+    REQUEST_COMMAND = (0xc3, ctypes.c_int, 9)
+    SEND_INT = (0xd1, type(None), 5)
+    SEND_FLOAT = (0xd2, type(None), 5)
+    SEND_SYS_STATE = (0xd3, ctypes.c_int, 9)
+    SEND_CONTROL_MODE = (0xd4, ctypes.c_int, 9)
+    SEND_FUNC_STATE = (0xd5, ctypes.c_int, 9)
+    SEND_AMB_TEMPO = (0xd6, ctypes.c_float, 9)
 
     @DynamicClassAttribute
     def code(self):

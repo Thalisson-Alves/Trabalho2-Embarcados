@@ -41,21 +41,21 @@ def main():
 
 
 def config_log():
-    logging.basicConfig(
-        filename=settings.LOG_CSV_FILE, 
-        encoding='utf-8', 
-        level=logging.INFO, 
-        format='%(asctime)s,%(message)s', 
-        datefmt='%d/%m/%Y %I:%M:%S'
-    )
+    # State logger
+    formatter = logging.Formatter('%(asctime)s,%(message)s')
+    handler = logging.FileHandler(settings.LOG_CSV_FILE)
+    handler.setFormatter(formatter)
+    logger = logging.getLogger('state')
+    logger.setLevel(logging.INFO)
+    logger.addHandler(handler)
 
+    # Debug logger
     formatter = logging.Formatter('%(asctime)s %(levelname)s %(funcName)s %(message)s')
     handler = logging.FileHandler(settings.DEBUG_CSV_FILE)
     handler.setFormatter(formatter)
-
-    debug_logger = logging.getLogger('debug')
-    debug_logger.setLevel(logging.DEBUG)
-    debug_logger.addHandler(handler)
+    logger = logging.getLogger('debug')
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(handler)
 
 
 def startup():
@@ -85,7 +85,7 @@ def shutdown():
 
 def log_state():
     while True:
-        logging.getLogger().info(','.join(map(lambda x: f'{x:.2f}' if isinstance(x, float) else str(x), (OvenState.internal_temp,  OvenState.room_temp, OvenState.reference_temp, OvenState.intensity))))
+        logging.getLogger('state').info(','.join(map(lambda x: f'{x:.2f}' if isinstance(x, float) else str(x), (OvenState.internal_temp,  OvenState.room_temp, OvenState.reference_temp, OvenState.intensity))))
         time.sleep(1)
 
 
