@@ -80,7 +80,7 @@ def handle_heating():
 def go_to_reference_temp(pred) -> None:
     logger = logging.getLogger('debug')
 
-    while pred() and OvenState.internal_temp != temp:
+    while pred() and OvenState.internal_temp != OvenState.reference_temp:
         pid.update_reference(OvenState.reference_temp)
         logger.debug(f'Updated PID reference to {OvenState.reference_temp}')
 
@@ -88,7 +88,7 @@ def go_to_reference_temp(pred) -> None:
         if internal is not None:
             OvenState.internal_temp = internal
 
-        OvenState.intensity = pid.control(internal)
+        OvenState.intensity = round(pid.control(internal))
         logger.debug(f'Updated OvenState.intensity to {OvenState.intensity}')
         modbus.send_control_signal(OvenState.intensity)
         modbus.send_reference_temp(OvenState.reference_temp)
@@ -99,12 +99,12 @@ def go_to_reference_temp(pred) -> None:
 
 def handle_reflow_curve():
     cur_time = 0
-    fst_sec, fst_temp = settings.REFLOW_CURVE[0]
+    _, fst_temp = settings.REFLOW_CURVE[0]
 
     pred = lambda: OvenState.heating and OvenState.heating_status == HeatingStatus.CURVE
 
     OvenState.reference_temp = fst_temp
-    go_to_reference_temp(fst_temp, pred)
+    go_to_reference_temp(pred)
 
     for sec, temp in settings.REFLOW_CURVE[1:]:
         while sec - cur_time > 0 and pred():
