@@ -45,7 +45,7 @@ void uart_close()
     close(uart_fp);
 }
 
-int uart_send(unsigned char command, const void *const buf, unsigned buf_size, void *out_buf)
+int uart_send(unsigned char command, int res_size, const void *const buf, unsigned buf_size, void *out_buf)
 {
     unsigned buffer_size = 0;
     unsigned char buffer[255];
@@ -74,18 +74,20 @@ int uart_send(unsigned char command, const void *const buf, unsigned buf_size, v
         return 1;
     }
 
-    sleep(1);
-
-    unsigned char rx_buffer[256];
-    int rx_size = read(uart_fp, (void *)rx_buffer, 255);
+    // sleep(.5);
 
     // unsigned char rx_buffer[256];
-    // int rx_size = 0;
-    // for (int size_read = 0; rx_size < 9; rx_size += size_read)
-    // {
-    //     size_read = read(uart_fp, rx_buffer + rx_size, 255);
-    //     sleep(0.01);
-    // }
+    // int rx_size = read(uart_fp, (void *)rx_buffer, 255);
+
+    unsigned char rx_buffer[256];
+    int rx_size = 0;
+    for (int size_read = 0; rx_size < res_size; rx_size += size_read)
+    {
+        size_read = read(uart_fp, rx_buffer + rx_size, res_size - rx_size);
+        sleep(0.05);
+    }
+    read(uart_fp, rx_buffer + rx_size, 120);
+    // printf("Leu %d\n", rx_size);
 
     if (rx_size < 2 || rx_size > 7)
     {
