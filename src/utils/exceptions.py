@@ -1,3 +1,4 @@
+import time
 import logging
 from inspect import signature, Parameter
 
@@ -16,11 +17,14 @@ class ModbusCRCError(RuntimeError):
 
 def retry_wrapper(fn):
     def wrapper(*args, retries: int = 2, **kwargs):
+        last_error = None
         for _ in range(retries + 1):
             try:
                 return fn(*args, **kwargs)
             except Exception as e:
-                logging.getLogger('debug').error(f'Error on {fn.__name__} - {e}')
+                last_error = e
+                time.sleep(0.5)
+        logging.getLogger('debug').error(f'Error on {fn.__name__} - {last_error}')
 
     retry_param = Parameter('retries', Parameter.KEYWORD_ONLY, default=2, annotation=int)
     sig = signature(fn)

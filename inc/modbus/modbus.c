@@ -48,7 +48,7 @@ void uart_close()
 int uart_send(unsigned char command, const void *const buf, unsigned buf_size, void *out_buf)
 {
     unsigned buffer_size = 0;
-    unsigned char buffer[9 + buf_size + 1];
+    unsigned char buffer[255];
     buffer[buffer_size++] = 0x01;
     buffer[buffer_size++] = (command < 0xd0 ? READ_CODE : SEND_CODE);
     buffer[buffer_size++] = command;
@@ -87,7 +87,7 @@ int uart_send(unsigned char command, const void *const buf, unsigned buf_size, v
     //     sleep(0.01);
     // }
 
-    if (rx_size <= 0)
+    if (rx_size < 2 || rx_size > 7)
     {
         // perror("Error on read");
         return 2;
@@ -103,7 +103,7 @@ int uart_send(unsigned char command, const void *const buf, unsigned buf_size, v
         return 3;
     }
 
-    if (rx_size > 5)
+    if (rx_size > 5 && out_buf != NULL)
         memcpy(out_buf, rx_buffer + 3, rx_size - 5);
 
     return 0;

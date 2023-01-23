@@ -11,6 +11,7 @@ import logging
 def handle_user_command():
     logger = logging.getLogger('debug')
     while True:
+        time.sleep(2)
         command = modbus.read_command()
         logger.debug(f'Got command {command}')
 
@@ -48,6 +49,7 @@ def handle_user_command():
 def update_temperature():
     logger = logging.getLogger('debug')
     while True:
+        time.sleep(2)
         internal = modbus.internal_temp()
         if internal is not None:
             OvenState.internal_temp = internal
@@ -65,7 +67,7 @@ def update_temperature():
 
 def handle_heating():
     while True:
-        time.sleep(0.5)
+        time.sleep(2)
         if not OvenState.heating:
             continue
 

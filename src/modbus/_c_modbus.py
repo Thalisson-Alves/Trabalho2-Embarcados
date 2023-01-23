@@ -9,7 +9,7 @@ from utils.settings import SO_DIR
 from utils import exceptions
 
 modbus_so = os.path.join(SO_DIR, 'modbus.so')
-module = ctypes.CDLL(modbus_so)
+module = ctypes.CDLL(modbus_so, use_errno=True)
 module.uart_send.argtypes = [ctypes.c_ubyte, ctypes.c_void_p,
                              ctypes.c_uint, ctypes.c_void_p]
 module.uart_send.restype = ctypes.c_int
@@ -55,7 +55,8 @@ def send(command: _RequestCommand, value: Union[int, float, bool, None] = None) 
     out = command.return_type()
     err = module.uart_send(command.code, value, size, out if out is None else ctypes.byref(out))
 
-    logging.getLogger('debug').info(f'Called with {command.name}. Got {err}')
+    errno = ctypes.get_errno()
+    logging.getLogger('debug').info(f'Called with {command.name}. Got {err} - :{errno}:{os.strerror(errno)}:')
 
     if err == 1:
         raise exceptions.ModbusWriteError('Failed to write value to uart')

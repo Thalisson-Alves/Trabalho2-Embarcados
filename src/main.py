@@ -13,22 +13,9 @@ from controller import *
 
 
 def main():
+    config_log()
+
     startup()
-    logging.basicConfig(
-        filename=settings.LOG_CSV_FILE, 
-        encoding='utf-8', 
-        level=logging.INFO, 
-        format='%(asctime)s,%(message)s', 
-        datefmt='%d/%m/%Y %I:%M:%S'
-    )
-
-    formatter = logging.Formatter('%(asctime)s %(levelname)s %(funcName)s %(message)s')
-    handler = logging.FileHandler(settings.DEBUG_CSV_FILE)
-    handler.setFormatter(formatter)
-
-    debug_logger = logging.getLogger('debug')
-    debug_logger.setLevel(logging.DEBUG)
-    debug_logger.addHandler(handler)
 
     threads = [
         threading.Thread(target=log_state, daemon=True),
@@ -51,6 +38,24 @@ def main():
         print('*' * len(msg))
     finally:
         shutdown()
+
+
+def config_log():
+    logging.basicConfig(
+        filename=settings.LOG_CSV_FILE, 
+        encoding='utf-8', 
+        level=logging.INFO, 
+        format='%(asctime)s,%(message)s', 
+        datefmt='%d/%m/%Y %I:%M:%S'
+    )
+
+    formatter = logging.Formatter('%(asctime)s %(levelname)s %(funcName)s %(message)s')
+    handler = logging.FileHandler(settings.DEBUG_CSV_FILE)
+    handler.setFormatter(formatter)
+
+    debug_logger = logging.getLogger('debug')
+    debug_logger.setLevel(logging.DEBUG)
+    debug_logger.addHandler(handler)
 
 
 def startup():

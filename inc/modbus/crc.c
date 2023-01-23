@@ -1,3 +1,4 @@
+#include "crc.h"
 
 short CRC16(short crc, char data)
 {
