@@ -3,6 +3,7 @@ import os
 from enum import Enum
 from types import DynamicClassAttribute
 from typing import Union
+import logging
 
 from utils.settings import SO_DIR
 from utils import exceptions
@@ -53,6 +54,8 @@ def send(command: _RequestCommand, value: Union[int, float, bool, None] = None) 
 
     out = command.return_type()
     err = module.uart_send(command.code, value, size, out if out is None else ctypes.byref(out))
+
+    logging.getLogger('debug').info(f'Called with {command.name}. Got {err}')
 
     if err == 1:
         raise exceptions.ModbusWriteError('Failed to write value to uart')

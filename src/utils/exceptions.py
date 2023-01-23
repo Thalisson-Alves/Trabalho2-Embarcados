@@ -1,3 +1,4 @@
+import logging
 from inspect import signature, Parameter
 
 
@@ -19,8 +20,7 @@ def retry_wrapper(fn):
             try:
                 return fn(*args, **kwargs)
             except Exception as e:
-                ...
-                # print(f'Error on {fn.__name__} - {e}')
+                logging.getLogger('debug').error(f'Error on {fn.__name__} - {e}')
 
     retry_param = Parameter('retries', Parameter.KEYWORD_ONLY, default=2, annotation=int)
     sig = signature(fn)

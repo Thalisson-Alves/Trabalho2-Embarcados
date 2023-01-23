@@ -3,17 +3,16 @@ import modbus
 import gpio
 import i2c
 import pid
-from oven_status import OvenState, HeatingStatus
+from oven_status import OvenState
 import curses
 from screen import Screen
 import threading
 from utils import settings
 import logging
+from controller import *
 
 
 def main():
-    # TODO: Refactor this file
-    # TODO: Add logs to a debug file
     startup()
     logging.basicConfig(
         filename=settings.LOG_CSV_FILE, 
@@ -22,6 +21,14 @@ def main():
         format='%(asctime)s,%(message)s', 
         datefmt='%d/%m/%Y %I:%M:%S'
     )
+
+    formatter = logging.Formatter('%(asctime)s %(levelname)s %(funcName)s %(message)s')
+    handler = logging.FileHandler(settings.DEBUG_CSV_FILE)
+    handler.setFormatter(formatter)
+
+    debug_logger = logging.getLogger('debug')
+    debug_logger.setLevel(logging.DEBUG)
+    debug_logger.addHandler(handler)
 
     threads = [
         threading.Thread(target=log_state, daemon=True),
@@ -44,92 +51,6 @@ def main():
         print('*' * len(msg))
     finally:
         shutdown()
-
-
-def handle_user_command():
-    while True:
-        command = modbus.read_command()
-
-        if command is None: continue
-
-        if command == command.OVEN_ON:
-            OvenState.on = True
-            modbus.send_system_status(OvenState.on)
-        elif command == command.OVEN_OFF:
-            OvenState.on = False
-            OvenState.heating = False
-            modbus.send_system_status(OvenState.on)
-            modbus.send_working_status(OvenState.heating)
-            gpio.change_intensity(0)
-        elif command == command.START_HEATING and OvenState.on:
-            OvenState.heating = True
-            modbus.send_working_status(OvenState.heating)
-        elif command == command.CANCEL:
-            OvenState.heating = False
-            modbus.send_working_status(OvenState.heating)
-            gpio.change_intensity(0)
-        elif command == command.TOGGLE_TEMP_MODE:
-            OvenState.heating_status = [HeatingStatus.CURVE, HeatingStatus.DASHBOARD][OvenState.heating_status != HeatingStatus.DASHBOARD]
-            modbus.send_control_status(OvenState.heating_status != HeatingStatus.DASHBOARD)
-
-        OvenState.room_temp = i2c.read_temp()
-        modbus.send_room_temp(OvenState.room_temp, retries=0)
-
-
-def update_temperature():
-    while True:
-        OvenState.internal_temp = modbus.internal_temp()
-
-        if OvenState.heating_status != HeatingStatus.DASHBOARD:
-            continue
-        OvenState.reference_temp = modbus.reference_temp()
-
-
-def handle_heating():
-    while True:
-        time.sleep(0.5)
-        if not OvenState.heating:
-            continue
-
-        if OvenState.heating_status == HeatingStatus.CURVE:
-            handle_reflow_curve()
-
-        go_to_reference_temp(lambda: OvenState.heating and OvenState.heating_status != HeatingStatus.CURVE)
-
-
-def go_to_reference_temp(pred) -> None:
-    while pred() and OvenState.internal_temp != temp:
-        pid.update_reference(OvenState.reference_temp)
-        internal = modbus.internal_temp()
-        if internal is not None:
-            OvenState.internal_temp = internal
-
-        OvenState.intensity = pid.control(internal)
-        modbus.send_control_signal(OvenState.intensity)
-        modbus.send_reference_temp(OvenState.reference_temp)
-        gpio.change_intensity(OvenState.intensity)
-
-        time.sleep(0.5)
-
-
-def handle_reflow_curve():
-    cur_time = 0
-    fst_sec, fst_temp = settings.REFLOW_CURVE[0]
-
-    pred = lambda: OvenState.heating and OvenState.heating_status == HeatingStatus.CURVE
-
-    OvenState.reference_temp = fst_temp
-    go_to_reference_temp(fst_temp, pred)
-
-    for sec, temp in settings.REFLOW_CURVE:
-        while sec - cur_time > 0 and pred():
-            time.sleep(.5)
-
-        if not pred():
-            return
-
-        OvenState.reference_temp = temp
-        cur_time = sec
 
 
 def startup():
