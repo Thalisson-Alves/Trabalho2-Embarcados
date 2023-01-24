@@ -79,12 +79,14 @@ class Screen:
     def initialize_boxes(self):
         h, w = self.size
 
-        self.system_state_box = Box(self.stdscr, (4, w // 3 - 2),
+        self.system_state_box = Box(self.stdscr, (4, w // 4 - 2),
                                     (3, 1), 'Estado do Sistema')
-        self.working_state_box = Box(self.stdscr, (4, w // 3 - 2),
-                                     (3, 1 + w // 3), 'Estado de Funcionamento')
-        self.control_mode_box = Box(self.stdscr, (4, w // 3 - 2),
-                                    (3, 1 + 2 * w // 3), 'Modo de Controle')
+        self.working_state_box = Box(self.stdscr, (4, w // 4 - 2),
+                                     (3, 1 + w // 4), 'Estado de Funcionamento')
+        self.control_mode_box = Box(self.stdscr, (4, w // 4 - 2),
+                                    (3, 1 + 2 * w // 4), 'Modo de Controle')
+        self.intensity_box = Box(self.stdscr, (4, w // 4 - 2),
+                                 (3, 1 + 3 * w // 4), 'Valor atuadores')
 
         self.options = [
             'Alterar Constantes do PID',
@@ -102,6 +104,7 @@ class Screen:
             self.system_state_box,
             self.working_state_box,
             self.control_mode_box,
+            self.intensity_box,
             self.menu_box,
             self.number_box,
             self.pid_box,
@@ -221,6 +224,7 @@ class Screen:
     def render_state(self):
         self.system_state_box.write(2, 0, format_value(OvenState.on), center=True)
         self.working_state_box.write(2, 0, format_value(OvenState.heating), center=True)
+        self.intensity_box.write(2, 0, format_value(OvenState.intensity), center=True)
 
     def render_control_mode(self):
         if self.state != _ScreenState.CONTROL_MODE:
