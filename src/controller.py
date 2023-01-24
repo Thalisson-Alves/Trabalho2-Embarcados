@@ -6,6 +6,7 @@ import pid
 from oven_status import OvenState, HeatingStatus
 from utils import settings
 import logging
+import threading
 
 
 def handle_user_command():
@@ -72,7 +73,7 @@ def handle_heating():
             continue
 
         if OvenState.heating_status == HeatingStatus.CURVE:
-            handle_reflow_curve()
+            threading.Thread(target=handle_reflow_curve, daemon=True).start()
 
         go_to_reference_temp(lambda: OvenState.heating and OvenState.heating_status != HeatingStatus.CURVE)
 
@@ -80,7 +81,7 @@ def handle_heating():
 def go_to_reference_temp(pred) -> None:
     logger = logging.getLogger('debug')
 
-    while pred() and OvenState.internal_temp != OvenState.reference_temp:
+    while pred() and abs(OvenState.internal_temp - OvenState.reference_temp) > .5:
         pid.update_reference(OvenState.reference_temp)
         logger.debug(f'Updated PID reference to {OvenState.reference_temp}')
 
@@ -95,7 +96,7 @@ def go_to_reference_temp(pred) -> None:
         modbus.send_reference_temp(OvenState.reference_temp)
         gpio.change_intensity(OvenState.intensity)
 
-        time.sleep(0.05)
+        time.sleep(1)
 
 
 def handle_reflow_curve():

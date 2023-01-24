@@ -75,12 +75,12 @@ def startup():
 
 
 def shutdown():
-    modbus.close()
-
     gpio.change_intensity(0)
 
     modbus.send_system_status(OvenState.on)
     modbus.send_working_status(OvenState.heating)
+
+    modbus.close()
 
 
 def log_state():

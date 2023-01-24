@@ -1,11 +1,11 @@
 import curses
-import io
 import os
-import logging
 from curses.textpad import rectangle
 from typing import Tuple
 from oven_status import OvenState, HeatingStatus
 from enum import Enum
+import pid
+import modbus
 
 
 class Box:
@@ -169,7 +169,11 @@ class Screen:
 
     def apply_number_action(self):
         prev_state, prev_action = self.prev_state
-        number = float(''.join(self.number_input))
+        try:
+            number = float(''.join(self.number_input))
+        except:
+            return
+
         self.number_input = []
         if prev_state == _ScreenState.TEMPERATURE:
             OvenState.reference_temp = number
@@ -177,12 +181,12 @@ class Screen:
         elif prev_state == _ScreenState.PID:
             setattr(OvenState, 'pid'[prev_action], number)
             self.update_state(_ScreenState.PID)
+            pid.config_constants(OvenState.p, OvenState.i, OvenState.d)
 
     def apply_control_mode_action(self):
         OvenState.heating_status = HeatingStatus(self.option_selected)
         self.update_state(_ScreenState.MENU)
-        # TODO: update OvenState. Update UART
-        ...
+        modbus.send_control_status(OvenState.heating_status != HeatingStatus.DASHBOARD)
 
     def update_state(self, new_state: _ScreenState):
         self.prev_state = self.state, self.option_selected
