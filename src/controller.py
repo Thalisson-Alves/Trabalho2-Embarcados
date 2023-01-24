@@ -85,10 +85,11 @@ def go_to_reference_temp(pred) -> None:
         logger.debug(f'Updated PID reference to {OvenState.reference_temp}')
 
         internal = modbus.internal_temp()
-        if internal is not None:
-            OvenState.internal_temp = internal
+        if internal is None:
+            continue
 
-        OvenState.intensity = round(pid.control(internal))
+        OvenState.internal_temp = internal
+        OvenState.intensity = round(pid.control(OvenState.internal_temp))
         logger.debug(f'Updated OvenState.intensity to {OvenState.intensity}')
         modbus.send_control_signal(OvenState.intensity)
         modbus.send_reference_temp(OvenState.reference_temp)

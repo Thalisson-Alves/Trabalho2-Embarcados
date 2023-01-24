@@ -1,5 +1,6 @@
 import ctypes
 import os
+from typing import Union
 
 from utils.settings import SO_DIR
 
@@ -19,5 +20,5 @@ def update_reference(ref: float) -> None:
     return module.pid_atualiza_referencia(ref)
 
 
-def control(output_mensure: float) -> float:
-    return module.pid_controle(output_mensure)
+def control(output_mensure: Union[float, int]) -> float:
+    return module.pid_controle(float(output_mensure))
