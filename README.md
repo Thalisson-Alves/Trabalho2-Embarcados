@@ -2,7 +2,7 @@
 
 ## Especificação
 
-TODO: Contextualizar...
+A especificação do trabalho pode ser encontrada [aqui](https://gitlab.com/fse_fga/trabalhos-2022_2/trabalho-2-2022-2).
 
 ## Instalação
 
